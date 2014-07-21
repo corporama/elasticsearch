@@ -17,8 +17,13 @@ fi
 # stop-the-world GC pauses during resize, and so that we can lock the
 # heap in memory on startup to prevent any of it from being swapped
 # out.
-JAVA_OPTS="$JAVA_OPTS -Xms${ES_MIN_MEM}"
-JAVA_OPTS="$JAVA_OPTS -Xmx${ES_MAX_MEM}"
+if test "${ES_JAVA_OPTS#*Xms}" = "$ES_JAVA_OPTS" ; then
+  JAVA_OPTS="$JAVA_OPTS -Xms${ES_MIN_MEM}"
+fi
+
+if test "${ES_JAVA_OPTS#*Xmx}" = "$ES_JAVA_OPTS" ; then
+  JAVA_OPTS="$JAVA_OPTS -Xmx${ES_MAX_MEM}"
+fi
 
 # new generation
 if [ "x$ES_HEAP_NEWSIZE" != "x" ]; then
@@ -41,11 +46,13 @@ if [ "x$ES_USE_IPV4" != "x" ]; then
   JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
 fi
 
+if test "${ES_JAVA_OPTS#*UseG1GC}" = "$ES_JAVA_OPTS" ; then
 JAVA_OPTS="$JAVA_OPTS -XX:+UseParNewGC"
 JAVA_OPTS="$JAVA_OPTS -XX:+UseConcMarkSweepGC"
 
 JAVA_OPTS="$JAVA_OPTS -XX:CMSInitiatingOccupancyFraction=75"
 JAVA_OPTS="$JAVA_OPTS -XX:+UseCMSInitiatingOccupancyOnly"
+fi
 
 # GC logging options
 if [ "x$ES_USE_GC_LOGGING" != "x" ]; then
